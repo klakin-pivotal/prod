@@ -1,4 +1,5 @@
 ---
+# TODO: turn into an ops-file that adds uaa as another instance-group
 name: uaa
 
 update:
@@ -42,6 +43,11 @@ instance_groups:
             scope: uaa.none
             authorities: uaa.admin,clients.read,clients.write,clients.secret,scim.read,scim.write,clients.admin
             secret: "((uaa_admin_client_secret))"
+          credhub:
+            authorized-grant-types: client_credentials
+            scope: uaa.none
+            authorities: credhub.read,credhub.write
+            secret: "((credhub_client_secret))"
         jwt:
           policy:
             active_key_id: key-1
@@ -56,6 +62,11 @@ instance_groups:
               password: "((cf_admin_password))"
               groups:
                 - uaa.admin
+            - name: credhub
+              password: "((credhub_user_password))"
+              groups:
+                - credhub.read
+                - credhub.write
             - name: marissa
               password: koala
               groups:
@@ -69,8 +80,8 @@ instance_groups:
         databases:
         - name: uaadb
           tag: uaa
-        db_scheme: postgresql
-        port: 5524
+        db_scheme: postgres
+        port: 5432
         roles:
         - name: uaaadmin
           password: ((uaaadmin-password))
@@ -102,6 +113,10 @@ variables:
   type: password
 - name: uaa_jwt_signing_key
   type: rsa
+- name: credhub_client_secret
+  type: password
+- name: credhub_user_password
+  type: password
 
 releases:
 - name: uaa
